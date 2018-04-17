@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class SideMenuController extends ParentController<DrawerLayout> implements NavigationOptionsListener {
 
@@ -71,11 +72,11 @@ public class SideMenuController extends ParentController<DrawerLayout> implement
 
 	public void setLeftController(ViewController controller) {
 		this.leftController = controller;
-        getView().addView(controller.getView(), new LayoutParams(MATCH_PARENT, MATCH_PARENT, Gravity.LEFT));
+        getView().addView(controller.getView(), new LayoutParams(WRAP_CONTENT, MATCH_PARENT, Gravity.LEFT));
 	}
 
 	public void setRightController(ViewController controller) {
 		this.rightController = controller;
-        getView().addView(controller.getView(), new LayoutParams(MATCH_PARENT, MATCH_PARENT, Gravity.RIGHT));
+        getView().addView(controller.getView(), new LayoutParams(WRAP_CONTENT, MATCH_PARENT, Gravity.RIGHT));
 	}
 }
