@@ -11,46 +11,35 @@ const NSInteger BLUR_STATUS_TAG = 78264801;
 const NSInteger BLUR_TOPBAR_TAG = 78264802;
 const NSInteger TOP_BAR_TRANSPARENT_TAG = 78264803;
 
+@implementation RCTConvert (UIModalPresentationStyle)
+
+RCT_ENUM_CONVERTER(UIModalPresentationStyle,
+				   (@{@"fullScreen": @(UIModalPresentationFullScreen),
+					  @"pageSheet": @(UIModalPresentationPageSheet),
+					  @"formSheet": @(UIModalPresentationFormSheet),
+					  @"currentContext": @(UIModalPresentationCurrentContext),
+					  @"custom": @(UIModalPresentationCustom),
+					  @"overFullScreen": @(UIModalPresentationOverFullScreen),
+					  @"overCurrentContext": @(UIModalPresentationOverCurrentContext),
+					  @"popover": @(UIModalPresentationPopover),
+					  @"none": @(UIModalPresentationNone)
+					  }), UIModalPresentationFullScreen, integerValue)
+
+@end
+
+@implementation RCTConvert (UIModalTransitionStyle)
+
+RCT_ENUM_CONVERTER(UIModalTransitionStyle,
+                   (@{@"coverVertical": @(UIModalTransitionStyleCoverVertical),
+                      @"flipHorizontal": @(UIModalTransitionStyleFlipHorizontal),
+                      @"crossDissolve": @(UIModalTransitionStyleCrossDissolve),
+                      @"partialCurl": @(UIModalTransitionStylePartialCurl)
+                      }), UIModalTransitionStyleCoverVertical, integerValue)
+
+@end
+
 @implementation RNNNavigationOptions
 
--(instancetype)init {
-	return [self initWithDict:@{}];
-}
-
--(instancetype)initWithDict:(NSDictionary *)options {
-	self = [super init];
-	self.statusBarHidden = [options objectForKey:@"statusBarHidden"];
-	self.statusBarBlur = [options objectForKey:@"statusBarBlur"];
-	self.statusBarStyle = [options objectForKey:@"statusBarStyle"];
-	self.screenBackgroundColor = [options objectForKey:@"screenBackgroundColor"];
-	self.backButtonTransition = [options objectForKey:@"backButtonTransition"];
-	self.orientation = [options objectForKey:@"orientation"];
-	self.topBar = [[RNNTopBarOptions alloc] initWithDict:[options objectForKey:@"topBar"]];
-	self.topTab = [[RNNTopTabOptions alloc] initWithDict:[options objectForKey:@"topTab"]];
-	self.bottomTabs = [[RNNBottomTabsOptions alloc] initWithDict:[options objectForKey:@"bottomTabs"]];
-	self.sideMenu = [[RNNSideMenuOptions alloc] initWithDict:[options objectForKey:@"sideMenu"]];
-	self.backgroundImage = [RCTConvert UIImage:[options objectForKey:@"backgroundImage"]];
-	self.rootBackgroundImage = [RCTConvert UIImage:[options objectForKey:@"rootBackgroundImage"]];
-	self.bottomTab = [[RNNBottomTabOptions alloc] initWithDict:[options objectForKey:@"bottomTab"]];
-	self.overlay = [[RNNOverlayOptions alloc] initWithDict:[options objectForKey:@"overlay"]];
-	self.customTransition = [[RNNAnimationOptions alloc] initWithDict:[options objectForKey:@"customTransition"]];
-	self.animations = [[RNNTransitionsOptions alloc] initWithDict:[options objectForKey:@"animations"]];
-
-	return self;
-}
-
--(void)mergeWith:(NSDictionary *)otherOptions {
-	for (id key in otherOptions) {
-		if ([self hasProperty:key]) {
-			if ([[self valueForKey:key] isKindOfClass:[RNNOptions class]]) {
-				RNNOptions* options = [self valueForKey:key];
-				[options mergeWith:[otherOptions objectForKey:key]];
-			} else {
-				[self setValue:[otherOptions objectForKey:key] forKey:key];
-			}
-		}
-	}
-}
 
 -(void)applyOn:(UIViewController<RNNRootViewProtocol> *)viewController {
 	[self.topBar applyOn:viewController];
@@ -96,9 +85,9 @@ const NSInteger TOP_BAR_TRANSPARENT_TAG = 78264803;
 			backgroundImageView = [[UIImageView alloc] initWithFrame:viewController.view.bounds];
 			[viewController.view insertSubview:backgroundImageView atIndex:0];
 		}
-		
+
 		backgroundImageView.layer.masksToBounds = YES;
-		backgroundImageView.image = self.backgroundImage;
+		backgroundImageView.image = [self.backgroundImage isKindOfClass:[UIImage class]] ? (UIImage*)self.backgroundImage : [RCTConvert UIImage:self.backgroundImage];
 		[backgroundImageView setContentMode:UIViewContentModeScaleAspectFill];
 	}
 	
@@ -108,11 +97,22 @@ const NSInteger TOP_BAR_TRANSPARENT_TAG = 78264803;
 			backgroundImageView = [[UIImageView alloc] initWithFrame:viewController.view.bounds];
 			[viewController.navigationController.view insertSubview:backgroundImageView atIndex:0];
 		}
-		
+
 		backgroundImageView.layer.masksToBounds = YES;
-		backgroundImageView.image = self.rootBackgroundImage;
+		backgroundImageView.image = [self.rootBackgroundImage isKindOfClass:[UIImage class]] ? (UIImage*)self.rootBackgroundImage : [RCTConvert UIImage:self.rootBackgroundImage];
 		[backgroundImageView setContentMode:UIViewContentModeScaleAspectFill];
 	}
+    
+    [self applyModalOptions:viewController];
+}
+
+- (void)applyModalOptions:(UIViewController*)viewController {
+    if (self.modalPresentationStyle) {
+        viewController.modalPresentationStyle = [RCTConvert UIModalPresentationStyle:self.modalPresentationStyle];
+    }
+    if (self.modalTransitionStyle) {
+        viewController.modalTransitionStyle = [RCTConvert UIModalTransitionStyle:self.modalTransitionStyle];
+    }
 }
 
 - (UIInterfaceOrientationMask)supportedOrientations {

@@ -24,6 +24,7 @@
     "url": "https://github.com/wix/react-native-navigation.git"
   },
   "main": "lib/dist/index.js",
+  "typings": "lib/dist/index.d.ts",
   "scripts": {
     "build": "rm -rf ./lib/dist && tsc",
     "xcode": "open playground/ios/playground.xcodeproj",
@@ -44,7 +45,7 @@
     "prerelease": "npm run build",
     "release": "node ./scripts/release",
     "local-docs": "node ./scripts/local-docs",
-    "gen-docs": "echo 'This is a work in progress'"
+    "gen-docs": "ts-node ./scripts/gen-docs/Main"
   },
   "peerDependencies": {
     "react": "*",
