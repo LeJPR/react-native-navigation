@@ -11,11 +11,11 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-public class ModalStack2 {
+public class ModalStack {
     private List<ViewController> modals = new ArrayList<>();
     private final ModalPresenter presenter;
 
-    public ModalStack2(ModalPresenter presenter) {
+    public ModalStack(ModalPresenter presenter) {
         this.presenter = presenter;
     }
 
@@ -23,16 +23,16 @@ public class ModalStack2 {
         presenter.setContentLayout(contentLayout);
     }
 
-    public void showModal(ViewController viewController, CommandListener listener) {
-        ViewController toRemove = isEmpty() ? null : peek();
+    public void showModal(ViewController viewController, ViewController root, CommandListener listener) {
+        ViewController toRemove = isEmpty() ? root : peek();
         modals.add(viewController);
         presenter.showModal(viewController, toRemove, listener);
     }
 
-    public void dismissModal(String componentId, CommandListener listener) {
+    public void dismissModal(String componentId, ViewController root, CommandListener listener) {
         ViewController toDismiss = findModalByComponentId(componentId);
         if (toDismiss != null) {
-            ViewController toAdd = isTop(toDismiss) ? get(size() - 2) : null;
+            ViewController toAdd = isTop(toDismiss) ? get(size() - 2) : root;
             modals.remove(toDismiss);
             presenter.dismissModal(toDismiss, toAdd, listener);
         } else {
@@ -40,7 +40,7 @@ public class ModalStack2 {
         }
     }
 
-    public void dismissAllModals(CommandListener listener) {
+    public void dismissAllModals(CommandListener listener, ViewController root) {
         if (modals.isEmpty()) {
             listener.onError("Nothing to dismiss");
             return;
@@ -48,7 +48,7 @@ public class ModalStack2 {
 
         while (!modals.isEmpty()) {
             if (modals.size() == 1) {
-                dismissModal(modals.get(0).getId(), listener);
+                dismissModal(modals.get(0).getId(), root, listener);
             } else {
                 modals.get(0).destroy();
                 modals.remove(0);
@@ -56,13 +56,12 @@ public class ModalStack2 {
         }
     }
 
-    public boolean handleBack(CommandListener listener, Runnable onModalWillDismiss) {
+    public boolean handleBack(CommandListener listener, ViewController root) {
         if (isEmpty()) return false;
         if (peek().handleBack(listener)) {
             return true;
         }
-        onModalWillDismiss.run();
-        dismissModal(peek().getId(), listener);
+        dismissModal(peek().getId(), root, listener);
         return true;
     }
 

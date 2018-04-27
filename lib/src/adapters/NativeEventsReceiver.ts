@@ -1,5 +1,5 @@
 import { NativeModules, NativeEventEmitter } from 'react-native';
-import { EventSubscription } from '../events/EventsRegistry';
+import { EventSubscription } from '../interfaces/EventSubscription';
 
 export class NativeEventsReceiver {
   private emitter: NativeEventEmitter;
@@ -21,5 +21,9 @@ export class NativeEventsReceiver {
 
   registerOnNavigationButtonPressed(callback: (params) => void): EventSubscription {
     return this.emitter.addListener('RNN.onNavigationButtonPressed', callback);
+  }
+
+  public registerOnNavigationEvent(callback: (params) => void): EventSubscription {
+    return this.emitter.addListener('RNN.onNavigationEvent', callback);
   }
 }

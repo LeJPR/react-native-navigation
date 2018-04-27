@@ -3,6 +3,7 @@ import { ReflectionsReader } from './ReflectionsReader';
 import { ClassParser } from './ClassParser';
 import { MarkdownWriter } from './MarkdownWriter';
 import { ReflectionKind } from 'typedoc';
+import { EnumParser } from './EnumParser';
 
 const INPUT_DIR = `${__dirname}/../../lib/src`;
 const OUTPUT_DIR = `${__dirname}/../../docs/api`;
@@ -13,19 +14,18 @@ const SOURCE_LINK_PREFIX = `https://github.com/wix/react-native-navigation/blob/
 class Main {
   public run() {
     const classParser = new ClassParser(SOURCE_LINK_PREFIX);
+    const enumParser = new EnumParser();
     const markdownWriter = new MarkdownWriter(TEMPLATES_DIR, OUTPUT_DIR);
-    const projectReflections = new ReflectionsReader(TSCONFIG_PATH).read(INPUT_DIR);
+    const reflections = new ReflectionsReader(TSCONFIG_PATH).read(INPUT_DIR);
 
-    const externalModules = projectReflections.getChildrenByKind(ReflectionKind.ExternalModule)
-      .filter((m) => !m.name.endsWith('.mock"') && !m.name.endsWith('.test"'));
+    const parsedClasses = classParser.parseClasses(reflections.classReflections);
+    const parsedInterfaces = classParser.parseClasses(reflections.interfaceReflections);
+    const parsedEnums = enumParser.parse(reflections.enumReflections);
 
-    const classReflections = externalModules.filter((m) => m.getChildrenByKind(ReflectionKind.Class).length === 1)
-      .map((m) => m.getChildrenByKind(ReflectionKind.Class)[0]);
-    // just class modules, TODO: extract interfaces and types to their own modules, generate docs for interfaces and types
-
-    const parsedClasses = classReflections.map((c) => classParser.parseClass(c));
     markdownWriter.writeClasses(parsedClasses);
-    markdownWriter.writeMenu(parsedClasses);
+    markdownWriter.writeClasses(parsedInterfaces);
+    markdownWriter.writeEnums(parsedEnums);
+    markdownWriter.writeMenu(parsedClasses, parsedInterfaces, parsedEnums);
   }
 }
 

@@ -4,18 +4,17 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.view.ViewGroup;
 
-import com.reactnativenavigation.anim.ModalAnimator2;
+import com.reactnativenavigation.anim.ModalAnimator;
+import com.reactnativenavigation.parse.ModalPresentationStyle;
 import com.reactnativenavigation.viewcontrollers.Navigator.CommandListener;
 import com.reactnativenavigation.viewcontrollers.ViewController;
-
-import javax.annotation.Nullable;
 
 public class ModalPresenter {
 
     private ViewGroup content;
-    private ModalAnimator2 animator;
+    private ModalAnimator animator;
 
-    public ModalPresenter(ModalAnimator2 animator) {
+    public ModalPresenter(ModalAnimator animator) {
         this.animator = animator;
     }
 
@@ -23,27 +22,29 @@ public class ModalPresenter {
         this.content = contentLayout;
     }
 
-    public void showModal(ViewController toAdd, @Nullable ViewController toRemove, CommandListener listener) {
+    public void showModal(ViewController toAdd, ViewController toRemove, CommandListener listener) {
         content.addView(toAdd.getView());
         if (toAdd.options.animations.showModal.enable.isTrueOrUndefined()) {
             animator.show(toAdd.getView(), toAdd.options.animations.showModal, new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    onShowModalEnd(toRemove, listener, toAdd);
+                    onShowModalEnd(toAdd, toRemove, listener);
                 }
             });
         } else {
-            onShowModalEnd(toRemove, listener, toAdd);
+            onShowModalEnd(toAdd, toRemove, listener);
         }
     }
 
-    private void onShowModalEnd(@Nullable ViewController toRemove, CommandListener listener, ViewController toAdd) {
-        if (toRemove != null) content.removeView(toRemove.getView());
+    private void onShowModalEnd(ViewController toAdd, ViewController toRemove, CommandListener listener) {
+        if (toAdd.options.modal.presentationStyle != ModalPresentationStyle.OverCurrentContext) {
+            toRemove.detachView();
+        }
         listener.onSuccess(toAdd.getId());
     }
 
-    public void dismissModal(ViewController toDismiss, @Nullable ViewController toAdd, CommandListener listener) {
-        if (toAdd != null) content.addView(toAdd.getView(), 0);
+    public void dismissModal(ViewController toDismiss, ViewController toAdd, CommandListener listener) {
+        toAdd.attachView(content, 0);
         if (toDismiss.options.animations.dismissModal.enable.isTrueOrUndefined()) {
             animator.dismiss(toDismiss.getView(), new AnimatorListenerAdapter() {
                 @Override
